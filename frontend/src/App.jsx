@@ -5,6 +5,19 @@ import "./app.css";
 
 const API = import.meta.env.VITE_API_URL || "";
 
+function ToastStack({ toasts }) {
+  return (
+    <div className="toast-stack" aria-live="polite" aria-atomic="true">
+      {toasts.map(toast => (
+        <div key={toast.id} className={`toast toast-${toast.type || "info"}`}>
+          <span className="toast-dot" />
+          <span>{toast.message}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function App() {
   const [messages, setMessages] = useState([]);
   const [docs, setDocs] = useState({});
@@ -15,11 +28,20 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("chat");
   const [insights, setInsights] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [toasts, setToasts] = useState([]);
 
   const messagesRef = useRef(messages);
   const docsRef = useRef(docs);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => { docsRef.current = docs; }, [docs]);
+
+  const notify = useCallback((message, type = "info") => {
+    const id = `${Date.now()}-${Math.random()}`;
+    setToasts(prev => [...prev, { id, message, type }]);
+    window.setTimeout(() => {
+      setToasts(prev => prev.filter(toast => toast.id !== id));
+    }, 3200);
+  }, []);
 
   const handleUpload = useCallback(async files => {
     const seen = new Set();
@@ -31,9 +53,13 @@ export default function App() {
         seen.add(file.name);
         return true;
       });
-    if (!pdfs.length) return;
+    if (!pdfs.length) {
+      notify("Upload a new PDF file to index it.", "warning");
+      return;
+    }
 
     setUploadJobs(count => count + pdfs.length);
+    notify(`Indexing ${pdfs.length} PDF${pdfs.length > 1 ? "s" : ""}...`, "info");
     await Promise.all(pdfs.map(async file => {
       const form = new FormData();
       form.append("file", file);
@@ -42,16 +68,16 @@ export default function App() {
         if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
         setDocs(prev => ({ ...prev, [data.filename]: { chunks: data.chunks, size_kb: data.size_kb } }));
+        notify(`${data.filename} indexed successfully.`, "success");
       } catch (e) {
-        alert(`Upload failed: ${e.message}`);
+        notify(`Upload failed: ${e.message}`, "error");
       } finally {
         setUploadJobs(count => Math.max(0, count - 1));
       }
     }));
-  }, []);
+  }, [notify]);
 
-  const handleSend = useCallback(async question => {
-    if (!Object.keys(docs).length) { alert("Please upload a PDF first."); return; }
+  const runQuery = useCallback(async question => {
     const history = messagesRef.current.map(m => ({
       role: m.role === "asst" ? "assistant" : "user",
       content: m.content || "",
@@ -86,12 +112,31 @@ export default function App() {
           ? { role: "asst", content: `Error: ${e.message}`, mode: "no_context", chunks: [], loading: false, query: question }
           : m
       ));
+      notify(`Query failed: ${e.message}`, "error");
     } finally {
       setLoading(false);
     }
-  }, [docs, strict, eli5]);
+  }, [strict, eli5, notify]);
+
+  const handleSend = useCallback(async question => {
+    if (!Object.keys(docsRef.current).length) {
+      notify("Upload a PDF first to start chatting.", "warning");
+      return;
+    }
+    await runQuery(question);
+  }, [notify, runQuery]);
+
+  const handleRegenerate = useCallback(async question => {
+    if (!question || loading) return;
+    notify("Regenerating answer...", "info");
+    await runQuery(question);
+  }, [loading, notify, runQuery]);
 
   const handleAnalyze = useCallback(async () => {
+    if (!Object.keys(docsRef.current).length) {
+      notify("Upload a PDF before generating insights.", "warning");
+      return;
+    }
     setAnalyzing(true);
     setActiveTab("insights");
     try {
@@ -99,24 +144,26 @@ export default function App() {
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setInsights(data.insights);
+      notify("Insights generated.", "success");
     } catch (e) {
-      alert(`Analysis failed: ${e.message}`);
+      notify(`Analysis failed: ${e.message}`, "error");
     } finally {
       setAnalyzing(false);
     }
-  }, []);
+  }, [notify]);
 
   const handleClear = useCallback(async () => {
     await fetch(`${API}/api/clear`, { method: "POST" }).catch(() => {});
     setMessages([]);
     setDocs({});
     setInsights(null);
-  }, []);
+    notify("Session cleared.", "success");
+  }, [notify]);
 
   const hasDocs = Object.keys(docs).length > 0;
   const tabs = [
     { id: "chat", label: "Chat" },
-    { id: "insights", label: "Insights âœ¦" },
+    { id: "insights", label: "Insights" },
     { id: "sources", label: "Sources" },
     { id: "eval", label: "Eval" },
   ];
@@ -138,19 +185,23 @@ export default function App() {
 
       <div className="main">
         <div className="tabs">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              className={`tab ${activeTab === tab.id ? "tab-active" : ""}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
+          <div className="tab-group" role="tablist" aria-label="DocChat sections">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                className={`tab ${activeTab === tab.id ? "tab-active" : ""}`}
+                onClick={() => setActiveTab(tab.id)}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
           <div className="tabs-right">
             {hasDocs && (
               <span className="doc-indicator">
-                â— {Object.keys(docs).length} doc{Object.keys(docs).length > 1 ? "s" : ""} indexed
+                <span className="status-dot" /> {Object.keys(docs).length} doc{Object.keys(docs).length > 1 ? "s" : ""} indexed
               </span>
             )}
           </div>
@@ -158,7 +209,14 @@ export default function App() {
 
         <div className="tab-body">
           {activeTab === "chat" && (
-            <ChatPanel messages={messages} loading={loading} onSend={handleSend} hasDocs={hasDocs} />
+            <ChatPanel
+              messages={messages}
+              loading={loading}
+              onSend={handleSend}
+              onRegenerate={handleRegenerate}
+              onToast={notify}
+              hasDocs={hasDocs}
+            />
           )}
           {activeTab === "insights" && (
             <InsightsPanel insights={insights} loading={analyzing} hasDocs={hasDocs} onGenerate={handleAnalyze} />
@@ -167,6 +225,7 @@ export default function App() {
           {activeTab === "eval" && <EvalPanel />}
         </div>
       </div>
+      <ToastStack toasts={toasts} />
     </div>
   );
 }
