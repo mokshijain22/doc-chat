@@ -4,9 +4,8 @@ python-multipart
 rank-bm25
 numpy
 pdfplumber
+pypdf
 tiktoken
 openai
 python-dotenv
 scikit-learn>=1.3
-sentence-transformers>=2.6
-faiss-cpu>=1.7

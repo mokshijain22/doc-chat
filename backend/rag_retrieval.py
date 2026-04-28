@@ -15,6 +15,10 @@ import re, os, time, json, logging
 import numpy as np
 import tiktoken
 import pdfplumber
+try:
+    from pypdf import PdfReader
+except Exception:  # pragma: no cover - optional fast path
+    PdfReader = None
 from dataclasses import dataclass
 from typing import Literal
 from openai import OpenAI
@@ -111,15 +115,30 @@ class DocumentChunker:
     def __init__(self):
         self.enc = tiktoken.get_encoding("cl100k_base")
 
-    def chunk_pdf(self, pdf_path: str) -> list:
-        doc_name         = os.path.basename(pdf_path)
-        token_page_pairs: list[tuple] = []
+    def _extract_pages(self, pdf_path: str) -> list[tuple[int, str]]:
+        if PdfReader is not None:
+            try:
+                reader = PdfReader(pdf_path)
+                return [
+                    (page_num, page.extract_text() or "")
+                    for page_num, page in enumerate(reader.pages, start=1)
+                ]
+            except Exception:
+                logger.warning("pypdf extraction failed; falling back to pdfplumber", exc_info=True)
 
         with pdfplumber.open(pdf_path) as pdf:
-            for page_num, page in enumerate(pdf.pages, start=1):
-                text   = page.extract_text() or ""
-                tokens = self.enc.encode(text)
-                token_page_pairs.extend((tok, page_num) for tok in tokens)
+            return [
+                (page_num, page.extract_text() or "")
+                for page_num, page in enumerate(pdf.pages, start=1)
+            ]
+
+    def chunk_pdf(self, pdf_path: str, doc_name: str | None = None) -> list:
+        doc_name = doc_name or os.path.basename(pdf_path)
+        token_page_pairs: list[tuple[int, int]] = []
+
+        for page_num, text in self._extract_pages(pdf_path):
+            tokens = self.enc.encode(text)
+            token_page_pairs.extend((tok, page_num) for tok in tokens)
 
         chunks = []
         step   = CHUNK_SIZE - CHUNK_OVERLAP
@@ -275,8 +294,8 @@ class RAGPipeline:
             base_url = "https://api.groq.com/openai/v1",
         )
 
-    def ingest(self, pdf_path: str) -> int:
-        new_chunks = self.chunker.chunk_pdf(pdf_path)
+    def ingest(self, pdf_path: str, doc_name: str | None = None) -> int:
+        new_chunks = self.chunker.chunk_pdf(pdf_path, doc_name=doc_name)
         self.chunks.extend(new_chunks)
         self.retriever = HybridRetriever(self.chunks)
         return len(new_chunks)

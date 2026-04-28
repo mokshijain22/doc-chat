@@ -3,7 +3,7 @@ backend/main.py (v4.0.0)
 New: POST /api/eval/run  — live LLM-judged eval on a single sample
      GET  /api/eval/feedback/stats — human vote P@K
 """
-import os, json, asyncio, tempfile
+import os, json, asyncio, tempfile, time
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +17,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
 pipeline    = RAGPipeline()
 eval_logger = EvalLogger()
 ingested:   dict = {}
+ingest_lock = asyncio.Lock()
 FEEDBACK_LOG = "feedback_log.jsonl"
 
 
@@ -48,6 +49,7 @@ def health():
 async def ingest(file: UploadFile = File(...)):
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(400, "Only PDF files are supported.")
+    started = time.time()
     content = await file.read()
     with tempfile.NamedTemporaryFile(
         delete=False, suffix=Path(file.filename).suffix,
@@ -55,7 +57,12 @@ async def ingest(file: UploadFile = File(...)):
     ) as tmp:
         tmp.write(content); tmp_path = tmp.name
     try:
-        n = pipeline.ingest(tmp_path)
+        loop = asyncio.get_event_loop()
+        async with ingest_lock:
+            n = await loop.run_in_executor(
+                None,
+                lambda: pipeline.ingest(tmp_path, doc_name=file.filename),
+            )
     except Exception as e:
         raise HTTPException(500, f"Failed to process PDF: {e}")
     finally:
@@ -63,7 +70,12 @@ async def ingest(file: UploadFile = File(...)):
         except: pass
     size_kb = round(len(content)/1024, 1)
     ingested[file.filename] = {"chunks": n, "size_kb": size_kb}
-    return {"filename": file.filename, "chunks": n, "size_kb": size_kb}
+    return {
+        "filename": file.filename,
+        "chunks": n,
+        "size_kb": size_kb,
+        "ingest_ms": int((time.time() - started) * 1000),
+    }
 
 
 @app.post("/api/query")
