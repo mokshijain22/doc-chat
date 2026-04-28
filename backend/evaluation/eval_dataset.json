@@ -1,0 +1,32 @@
+[
+  {
+    "query": "What are the main findings of the study?",
+    "reference_answer": "The article argues that AI is not simply any program that behaves intelligently or impresses people. It says AI work is defined by ideas about representing and using knowledge, by the ability or promise to scale beyond toy examples, and by building systems that shed light on classes of tasks rather than only completing one narrow task. It also argues that turning AI prototypes into real systems requires serious software engineering.",
+    "relevant_chunk_ids": [
+      "AI.pdf:6:17",
+      "AI.pdf:8:21",
+      "AI.pdf:9:26"
+    ]
+  },
+  {
+    "query": "What methodology was used?",
+    "reference_answer": "The article uses a reflective argumentative method built around historical examples and case studies from AI systems such as SAM, FRUMP, ATRANS, speech recognition programs, chess programs, Winograd's work, and expert system shells. It compares how these systems were treated as AI or not AI, then derives criteria such as scaleup, knowledge representation, domain modeling, and practical engineering.",
+    "relevant_chunk_ids": [
+      "AI.pdf:3:5",
+      "AI.pdf:3:6",
+      "AI.pdf:4:9",
+      "AI.pdf:5:12",
+      "AI.pdf:5:13",
+      "AI.pdf:6:16"
+    ]
+  },
+  {
+    "query": "What are the key conclusions?",
+    "reference_answer": "The article concludes that the core of AI lies in knowledge representation, domain understanding, and AI ideas, not merely in inference engines, narrow products, or impressive demos. It says AI must confront size and scaleup problems directly, because prototypes that work on a few examples are not enough, and AI researchers cannot rely on non-AI engineers to magically turn prototypes into robust real systems.",
+    "relevant_chunk_ids": [
+      "AI.pdf:8:21",
+      "AI.pdf:8:23",
+      "AI.pdf:9:26"
+    ]
+  }
+]

@@ -1,0 +1,91 @@
+{
+  "aggregate": {
+    "num_samples": 3,
+    "avg_precision_at_k": 0.533,
+    "avg_recall_at_k": 0.722,
+    "avg_mrr": 1.0,
+    "avg_faithfulness": 0.0,
+    "avg_answer_relevance": 0.0,
+    "avg_correctness": 0.0
+  },
+  "samples": [
+    {
+      "query": "What are the main findings of the study?",
+      "reference_answer": "The article argues that AI is not simply any program that behaves intelligently or impresses people. It says AI work is defined by ideas about representing and using knowledge, by the ability or promise to scale beyond toy examples, and by building systems that shed light on classes of tasks rather than only completing one narrow task. It also argues that turning AI prototypes into real systems requires serious software engineering.",
+      "generated_answer": "{\"summary\": \"Error.\", \"key_points\": [], \"detailed_answer\": \"LLM error: Error code: 400 - {'error': {'message': 'Organization has been restricted. Please reach out to support if you believe this was in error.', 'type': 'invalid_request_error', 'code': 'organization_restricted'}}\", \"answer_found\": false}",
+      "retrieved_ids": [
+        "AI.pdf:8:21",
+        "AI.pdf:4:7",
+        "AI.pdf:5:12",
+        "AI.pdf:9:26",
+        "AI.pdf:6:16"
+      ],
+      "relevant_ids": [
+        "AI.pdf:6:17",
+        "AI.pdf:8:21",
+        "AI.pdf:9:26"
+      ],
+      "precision_at_k": 0.4,
+      "recall_at_k": 0.6666666666666666,
+      "mrr": 1.0,
+      "faithfulness": 0.0,
+      "answer_relevance": 0.0,
+      "correctness": 0.0,
+      "rationale": "Eval error: Error code: 400 - {'error': {'message': 'Organization has been restricted. Please reach out to support if you believe this was in error.', 'type': 'invalid_request_error', 'code': 'organization_restricted'}}",
+      "latency_ms": 1418
+    },
+    {
+      "query": "What methodology was used?",
+      "reference_answer": "The article uses a reflective argumentative method built around historical examples and case studies from AI systems such as SAM, FRUMP, ATRANS, speech recognition programs, chess programs, Winograd's work, and expert system shells. It compares how these systems were treated as AI or not AI, then derives criteria such as scaleup, knowledge representation, domain modeling, and practical engineering.",
+      "generated_answer": "{\"summary\": \"Error.\", \"key_points\": [], \"detailed_answer\": \"LLM error: Error code: 400 - {'error': {'message': 'Organization has been restricted. Please reach out to support if you believe this was in error.', 'type': 'invalid_request_error', 'code': 'organization_restricted'}}\", \"answer_found\": false}",
+      "retrieved_ids": [
+        "AI.pdf:3:5",
+        "AI.pdf:4:9",
+        "AI.pdf:3:6",
+        "AI.pdf:6:17",
+        "AI.pdf:5:11"
+      ],
+      "relevant_ids": [
+        "AI.pdf:3:5",
+        "AI.pdf:3:6",
+        "AI.pdf:4:9",
+        "AI.pdf:5:12",
+        "AI.pdf:5:13",
+        "AI.pdf:6:16"
+      ],
+      "precision_at_k": 0.6,
+      "recall_at_k": 0.5,
+      "mrr": 1.0,
+      "faithfulness": 0.0,
+      "answer_relevance": 0.0,
+      "correctness": 0.0,
+      "rationale": "Eval error: Error code: 400 - {'error': {'message': 'Organization has been restricted. Please reach out to support if you believe this was in error.', 'type': 'invalid_request_error', 'code': 'organization_restricted'}}",
+      "latency_ms": 415
+    },
+    {
+      "query": "What are the key conclusions?",
+      "reference_answer": "The article concludes that the core of AI lies in knowledge representation, domain understanding, and AI ideas, not merely in inference engines, narrow products, or impressive demos. It says AI must confront size and scaleup problems directly, because prototypes that work on a few examples are not enough, and AI researchers cannot rely on non-AI engineers to magically turn prototypes into robust real systems.",
+      "generated_answer": "{\"summary\": \"Error.\", \"key_points\": [], \"detailed_answer\": \"LLM error: Error code: 400 - {'error': {'message': 'Organization has been restricted. Please reach out to support if you believe this was in error.', 'type': 'invalid_request_error', 'code': 'organization_restricted'}}\", \"answer_found\": false}",
+      "retrieved_ids": [
+        "AI.pdf:8:21",
+        "AI.pdf:6:16",
+        "AI.pdf:9:26",
+        "AI.pdf:5:13",
+        "AI.pdf:8:23"
+      ],
+      "relevant_ids": [
+        "AI.pdf:8:21",
+        "AI.pdf:8:23",
+        "AI.pdf:9:26"
+      ],
+      "precision_at_k": 0.6,
+      "recall_at_k": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.0,
+      "answer_relevance": 0.0,
+      "correctness": 0.0,
+      "rationale": "Eval error: Error code: 400 - {'error': {'message': 'Organization has been restricted. Please reach out to support if you believe this was in error.', 'type': 'invalid_request_error', 'code': 'organization_restricted'}}",
+      "latency_ms": 963
+    }
+  ]
+}
