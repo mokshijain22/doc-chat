@@ -16,10 +16,10 @@ services:
     runtime: static
     rootDir: frontend
     buildCommand: npm ci && npm run build
-    staticPublishPath: dist
+    staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
-        sync: false
+        value: https://docchat-backend-k6g3.onrender.com
     routes:
       - type: rewrite
         source: /*
