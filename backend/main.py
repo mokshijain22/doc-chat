@@ -13,7 +13,13 @@ from rag_retrieval import RAGPipeline, EvalLogger
 app = FastAPI(title="DocChat AI", version="4.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"])
+from fastapi import FastAPI
 
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return {"message": "Doc Chat API running"}
 pipeline    = RAGPipeline()
 eval_logger = EvalLogger()
 ingested:   dict = {}
